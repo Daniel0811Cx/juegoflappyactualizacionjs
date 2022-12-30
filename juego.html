@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird 2</title>
+    <link href="sb-admin-2.min.css" rel="stylesheet" type="text/css">
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+</head>
+
+<body style="background-color: lightskyblue;">
+
+    <audio id="miTimbre" src="flappy-bird.mp3" hidden></audio>
+    <audio id="idaleteo" src="aleteo.mp3" hidden></audio>
+    <audio id="idgolpe" src="sonidogolpe.mp3" hidden></audio>
+    <br>
+    <div class="container" style="display: flex; flex-direction: row; justify-content: left;">
+        <canvas id="gameCanvas" width="600" height="600" style="background-color: aquamarine;"></canvas>
+        <div id="miDiv" style="width: 800px; height: 600px;  text-align: center; background-color: black;">
+            <br><br><br>
+            <h3>Puntaje:</h3>
+            <br><br><br> <br><br><br>
+            <h1 id="etiquetpuntaje"></h1>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let puntaje = 0;
+        let perdio = false;
+        const bird = {
+            x: 100,
+            y: 250,
+            radius: 12,
+            gravity: 0.25,
+            lift: -12,
+            velocity: 0
+        };
+
+
+        const pipes = [];
+
+        pipes.push({
+            x: canvas.width,
+            width: 80,
+            gap: 120,
+            top: 300,
+            bottom: canvas.height - 150
+        });
+
+
+        function drawBird() {
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'yellow';
+            ctx.fill();
+            ctx.closePath();
+        }
+        function drawPipe(pipe) {
+            ctx.beginPath();
+            ctx.rect(pipe.x, 0, pipe.width, pipe.top); // obstáculo superior
+            ctx.rect(pipe.x, pipe.bottom, pipe.width, pipe.gap + pipe.top); // obstáculo inferior
+            ctx.fillStyle = 'green';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Función para actualizar la posición del personaje principal y los obstáculos en cada frame del juego
+        // Función para actualizar la posición del personaje principal y los obstáculos en cada frame del juego
+        function update() {
+            // Aplicar la gravedad al personaje principal
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+
+            // Mover los obstáculos hacia la izquierda
+            for (let i = 0; i < pipes.length; i++) {
+                pipes[i].x -= 2;
+
+                if (bird.x + bird.radius > pipes[i].x && bird.x - bird.radius < pipes[i].x + pipes[i].width) {
+                    if (bird.y - bird.radius < pipes[i].top || bird.y + bird.radius > pipes[i].bottom) {
+                        // Fin del juego
+                        reproducirGolpe();
+                        alert("perdiste!");
+                        perdio = true;
+
+
+                    }
+                }
+
+                // Generar un nuevo obstáculo cuando el actual se sale del canvas
+                if (pipes[i].x + pipes[i].width < 0) {
+
+                    puntaje++;
+                    var recogido = document.getElementById('etiquetpuntaje');
+
+                    recogido.innerHTML = puntaje;
+                    reproducirTimbre();
+
+
+                    pipes.shift();
+                    let randomNumberBottom = Math.floor(Math.random() * 51) + 100;
+                    let randomNumberTop = Math.floor(Math.random() * (250 - 200 + 1)) + 200;
+
+
+
+
+                    pipes.push({
+                        x: canvas.width,
+                        width: 80,
+                        gap: 120,
+                        top: randomNumberTop,
+                        bottom: canvas.height - randomNumberBottom
+                    });
+
+                }
+            } // Comprobar si el personaje principal sale del canvas
+            if (bird.y - bird.radius < 0 || bird.y + bird.radius > canvas.height) {
+                // Fin del juego
+                reproducirGolpe();
+                alert("perdiste!");
+
+                perdio = true;
+
+            }
+        }
+
+        var timbre = document.getElementById('miTimbre');
+
+        // Define la función para reproducir el timbre
+        function reproducirTimbre() {
+            timbre.play();
+        }
+
+        var taleteo = document.getElementById("idaleteo");
+
+        function reproducirAleteo() {
+            taleteo.play();
+        }
+
+        var tgolpe = document.getElementById("idgolpe");
+        function reproducirGolpe() {
+            tgolpe.play();
+        }
+
+
+        // Función principal del juego
+        function main() {
+            // Borrar el canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar el personaje principal y los obstáculos
+            drawBird();
+            for (let i = 0; i < pipes.length; i++) {
+                drawPipe(pipes[i]);
+            }
+
+
+
+            // Actualizar la posición del personaje principal y los obstáculos
+            update();
+
+            // Ejecutar la función principal del juego en el siguiente frame
+            if (perdio === false) {
+                requestAnimationFrame(main);
+            } else {
+                location.href = "index.html";
+            }
+
+        }
+
+        // Evento para cuando se pulse la tecla espacio
+        document.addEventListener('keydown', function (e) {
+            if (e.code === 'Space') {
+                // Elevar el personaje principal
+                reproducirAleteo();
+                bird.velocity += bird.lift;
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            reproducirAleteo();
+            bird.velocity += bird.lift;
+        });
+
+        // Iniciar el juego
+        main();
+    </script>
+</body>
+
+</html>
